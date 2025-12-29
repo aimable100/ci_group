@@ -35,8 +35,14 @@ ci_group::group!("Build", {
 No output outside CI. To preview locally:
 
 ```bash
-GITHUB_ACTIONS=true cargo run
+GITHUB_ACTIONS=true cargo run   # GitHub Actions
+TF_BUILD=true cargo run          # Azure Pipelines
 ```
+
+## Limitation
+
+RAII cannot help if code calls `std::process::exit()` - destructors are skipped.
+Return from `main()` instead.
 
 ## License
 

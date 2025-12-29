@@ -19,6 +19,11 @@
 //!     println!("Running tests...");
 //! });
 //! ```
+//!
+//! # Caveats
+//!
+//! - `std::process::exit()` skips destructors. Groups won't close. Use normal returns instead.
+//! - Don't hold `StdoutLock` across a scope where a `Group` drops (potential deadlock).
 
 use std::io::Write;
 
@@ -100,6 +105,13 @@ pub fn open(title: &str) -> Group {
     Group::new(title)
 }
 
+/// Opens a log group for the duration of a block.
+///
+/// ```rust
+/// ci_group::group!("Build", {
+///     println!("Building...");
+/// });
+/// ```
 #[macro_export]
 macro_rules! group {
     ($title:expr, $body:block) => {{
