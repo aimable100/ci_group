@@ -8,7 +8,7 @@
 //! build(); // if this panics, the group still closes
 //! ```
 //!
-//! Work in progress. Currently only supports GitHub Actions.
+//! Work in progress. Supports GitHub Actions and Azure Pipelines.
 
 use std::io::Write;
 
@@ -16,19 +16,23 @@ use std::io::Write;
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 enum Provider {
     GitHub,
+    Azure,
     None,
 }
     
 impl Provider {
     /// Detects the CI/CD provider from the environment variables.
     fn detect() -> Self {
-        let is_github = match std::env::var("GITHUB_ACTIONS") {
-            Ok(v) => v.eq_ignore_ascii_case("true"),
-            Err(_) => false,
-        };
-
-        if is_github {
+        if std::env::var("GITHUB_ACTIONS")
+            .map(|v| v.eq_ignore_ascii_case("true"))
+            .unwrap_or(false)
+        {
             Provider::GitHub
+        } else if std::env::var("TF_BUILD")
+            .map(|v| v.eq_ignore_ascii_case("true"))
+            .unwrap_or(false)
+        {
+            Provider::Azure
         } else {
             Provider::None
         }
@@ -54,12 +58,13 @@ impl Group {
         let provider = Provider::detect();
 
         if provider.is_active() {
-            // Lock stdout to avoid interleaving with concurrent output
-            // Leading newline for column 0, same as start marker
-            // Swallow all errors to stay unwind-safe (no panics in Drop)
             let mut stdout = std::io::stdout().lock();
-            let _ = writeln!(stdout, "\n::group::{title}");
-            let _ = stdout.flush(); // Forces the write to be visible
+            let _ = match provider {
+                Provider::GitHub => writeln!(stdout, "\n::group::{title}"),
+                Provider::Azure => writeln!(stdout, "\n##[group]{title}"),
+                Provider::None => Ok(()),
+            };
+            let _ = stdout.flush();
         }
 
         Group { provider }
@@ -70,7 +75,11 @@ impl Drop for Group {
     fn drop(&mut self) {
         if self.provider.is_active() {
             let mut stdout = std::io::stdout().lock();
-            let _ = writeln!(stdout, "\n::endgroup::");
+            let _ = match self.provider {
+                Provider::GitHub => writeln!(stdout, "\n::endgroup::"),
+                Provider::Azure => writeln!(stdout, "\n##[endgroup]"),
+                Provider::None => Ok(()),
+            };
             let _ = stdout.flush();
         }
     }
@@ -128,8 +137,19 @@ mod tests {
     }
 
     #[test]
+    fn detects_azure() {
+        temp_env::with_var("TF_BUILD", Some("True"), || {
+            assert_eq!(Provider::detect(), Provider::Azure);
+        });
+        temp_env::with_var_unset("TF_BUILD", || {
+            assert_eq!(Provider::detect(), Provider::None);
+        });
+    }
+
+    #[test]
     fn is_active_works() {
         assert!(Provider::GitHub.is_active());
+        assert!(Provider::Azure.is_active());
         assert!(!Provider::None.is_active());
     }
 
