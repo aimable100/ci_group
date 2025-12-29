@@ -1,14 +1,24 @@
-//! RAII log groups for GitHub Actions.
+//! A lightweight RAII library for log groups in GitHub Actions and Azure Pipelines.
 //!
-//! I kept losing CI logs because unclosed groups swallow all output after them.
-//! This crate fixes that. Groups close automatically when dropped, even on panic.
+//! Fixes "swallowed logs" by closing groups automatically when dropped, preserving output even on panic.
 //!
-//! ```rust,ignore
+//! # Usage
+//!
+//! Guard style (group lasts until end of scope):
+//!
+//! ```rust
 //! let _g = ci_group::open("Build");
-//! build(); // if this panics, the group still closes
+//! println!("Building...");
+//! // group closes here when _g is dropped
 //! ```
 //!
-//! Work in progress. Supports GitHub Actions and Azure Pipelines.
+//! Macro style (group wraps a block):
+//!
+//! ```rust
+//! ci_group::group!("Test", {
+//!     println!("Running tests...");
+//! });
+//! ```
 
 use std::io::Write;
 

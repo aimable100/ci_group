@@ -3,10 +3,11 @@ name = "ci_group"
 version = "0.1.0"
 edition = "2021"
 license = "MIT OR Apache-2.0"
-description = "RAII log groups for GitHub Actions and Azure Pipelines"
+description = "RAII log groups for GitHub Actions and Azure Pipelines. Fixes swallowed logs."
 repository = "https://github.com/aimable100/ci_group"
 keywords = ["github-actions", "azure-pipelines", "ci", "logging"]
 categories = ["development-tools"]
+readme = "README.md"
 
 [dependencies]
 

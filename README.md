@@ -4,9 +4,9 @@
 [![Docs.rs](https://docs.rs/ci_group/badge.svg)](https://docs.rs/ci_group)
 [![License](https://img.shields.io/badge/license-MIT%2FApache--2.0-blue.svg)](LICENSE-MIT)
 
-RAII log groups for GitHub Actions and Azure Pipelines.
+A lightweight RAII library for log groups in GitHub Actions and Azure Pipelines.
 
-Groups close automatically when dropped, even on panic. No more lost CI logs.
+Fixes "swallowed logs" by closing groups automatically when dropped, preserving output even on panic.
 
 ## Install
 
