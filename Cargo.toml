@@ -1,0 +1,25 @@
+[package]
+name = "ci_group"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+
+
+[dev-dependencies]
+temp-env = "0.3"
+
+[[bin]]
+name = "basic"
+path = "tests/bins/basic.rs"
+test = false
+
+[[bin]]
+name = "panic"
+path = "tests/bins/panic.rs"
+test = false
+
+[[bin]]
+name = "no_newline"
+path = "tests/bins/no_newline.rs"
+test = false
