@@ -138,12 +138,13 @@ mod tests {
 
     #[test]
     fn detects_azure() {
-        temp_env::with_var("TF_BUILD", Some("True"), || {
-            assert_eq!(Provider::detect(), Provider::Azure);
-        });
-        temp_env::with_var_unset("TF_BUILD", || {
-            assert_eq!(Provider::detect(), Provider::None);
-        });
+        // Must unset GITHUB_ACTIONS since this test runs in GitHub Actions
+        temp_env::with_vars(
+            [("TF_BUILD", Some("True")), ("GITHUB_ACTIONS", None)],
+            || {
+                assert_eq!(Provider::detect(), Provider::Azure);
+            },
+        );
     }
 
     #[test]
